@@ -1,15 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { SearchSection } from "@/components/SearchSection";
 import { CategoryGrid } from "@/components/CategoryGrid";
 import { MovieCard } from "@/components/MovieCard";
+import { ApiKeySetup } from "@/components/ApiKeySetup";
 import { useToast } from "@/components/ui/use-toast";
+import { OMDBService } from "@/services/omdbApi";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState("home");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const apiKey = OMDBService.getApiKey();
+    setHasApiKey(!!apiKey);
+  }, []);
 
   // Sample movie data for demonstration
   const sampleMovies = [
@@ -38,25 +46,50 @@ const Index = () => {
   const handleSearch = async (query: string) => {
     setIsLoading(true);
     try {
-      // In a real implementation, this would call the OMDB API
-      // For now, we'll simulate a search
-      setTimeout(() => {
-        setSearchResults(sampleMovies.filter(movie => 
+      if (hasApiKey) {
+        const result = await OMDBService.searchMovies(query);
+        if (result.success && result.data) {
+          const formattedResults = result.data.map(movie => ({
+            title: movie.Title,
+            year: movie.Year,
+            rating: movie.imdbRating || "N/A",
+            director: movie.Director || "N/A",
+            actors: movie.Actors || "N/A",
+            plot: movie.Plot || "No plot available",
+            poster: movie.Poster,
+            imdbID: movie.imdbID
+          }));
+          setSearchResults(formattedResults);
+          toast({
+            title: "Search completed",
+            description: `Found ${result.totalResults} results for "${query}"`,
+          });
+        } else {
+          toast({
+            title: "No results found",
+            description: result.error || `No movies found for "${query}"`,
+            variant: "destructive",
+          });
+        }
+      } else {
+        // Fallback to sample data
+        const filteredResults = sampleMovies.filter(movie => 
           movie.title.toLowerCase().includes(query.toLowerCase())
-        ));
-        setIsLoading(false);
+        );
+        setSearchResults(filteredResults);
         toast({
-          title: "Search completed",
-          description: `Found results for "${query}"`,
+          title: "Search completed (Sample Data)",
+          description: `Found ${filteredResults.length} results. Add API key for real data.`,
         });
-      }, 1000);
+      }
     } catch (error) {
-      setIsLoading(false);
       toast({
         title: "Search failed",
         description: "Please try again later",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,14 +101,47 @@ const Index = () => {
     setCurrentView(category);
   };
 
-  const handleViewChange = (view: string) => {
+  const handleViewChange = async (view: string) => {
     setCurrentView(view);
     if (view === "imdb") {
-      setSearchResults(sampleMovies);
+      setIsLoading(true);
+      try {
+        if (hasApiKey) {
+          const result = await OMDBService.getTopMovies();
+          if (result.success && result.data) {
+            const formattedResults = result.data.map(movie => ({
+              title: movie.Title,
+              year: movie.Year,
+              rating: movie.imdbRating || "N/A",
+              director: movie.Director || "N/A",
+              actors: movie.Actors || "N/A",
+              plot: movie.Plot || "No plot available",
+              poster: movie.Poster,
+              imdbID: movie.imdbID
+            }));
+            setSearchResults(formattedResults);
+          }
+        } else {
+          setSearchResults(sampleMovies);
+        }
+      } catch (error) {
+        setSearchResults(sampleMovies);
+      } finally {
+        setIsLoading(false);
+      }
     } else if (view === "home") {
       setSearchResults([]);
     }
   };
+
+  const handleApiKeySet = () => {
+    setHasApiKey(true);
+  };
+
+  // Show API key setup if no key is present
+  if (!hasApiKey) {
+    return <ApiKeySetup onApiKeySet={handleApiKeySet} />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
