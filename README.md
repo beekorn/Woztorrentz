@@ -1,6 +1,17 @@
 # Woztorrentz - IMDB Torrent Stream
 
+🌐 **[LIVE DEMO - woztorrentz.netlify.app](https://woztorrentz.netlify.app)** 🌐
+
 A comprehensive web-based platform for searching torrents and discovering movies/TV shows. The application combines TMDB movie/TV data with torrent scraping from multiple sources, plus a Top 100 section powered by Pirate Bay data. Features real-time movie data, intelligent IMDB linking, and multi-source torrent search.
+
+---
+
+## 🔗 Quick Links
+
+- 🚀 **[Live Application](https://woztorrentz.netlify.app)** - Try it now!
+- 📖 **[API Documentation](#-api-endpoints)** - Complete endpoint reference
+- ⚡ **[Quick Setup](#setup-and-installation-windows)** - Get started in minutes
+- 🚀 **[Deploy Your Own](#-deployment)** - Netlify deployment guide
 
 ## 🚀 Key Features
 
@@ -200,9 +211,13 @@ This application is optimized for Netlify deployment with serverless functions:
    - Functions directory: `netlify/functions`
 4. **Deploy**: Netlify will automatically deploy on every push to main branch
 
-**Live Demo**: The application includes Netlify Functions for:
+🌟 **[Live Demo: woztorrentz.netlify.app](https://woztorrentz.netlify.app)** 🌟
+
+The production application includes Netlify Functions for:
 - Movie/TV data from TMDB (`/api/movies/*`, `/api/tv/*`)
 - IMDB MovieMeter integration (`/api/imdb/moviemeter`)
+- Real-time torrent search across multiple sources
+- Top 100 torrent lists by category
 
 ### Local Development Setup
 
