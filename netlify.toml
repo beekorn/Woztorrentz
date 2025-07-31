@@ -6,8 +6,29 @@
 [dev]
   command = "npm run dev"
   targetPort = 5173
+  framework = "#custom"
+
+[functions]
+  node_bundler = "esbuild"
+
+# API redirects for serverless functions
+[[redirects]]
+  from = "/api/movies/*"
+  to = "/.netlify/functions/movies"
+  status = 200
 
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  from = "/api/tv/*"
+  to = "/.netlify/functions/tv"
+  status = 200
+
+[[redirects]]
+  from = "/api/imdb/moviemeter"
+  to = "/.netlify/functions/moviemeter"
+  status = 200
+
+# Catch-all redirect for SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
   status = 200
