@@ -1,4 +1,4 @@
-# Woztorrentz - IMDB Torrent Stream
+# Woztorrentz
 
 🌐 **[LIVE DEMO - woztorrentz.netlify.app](https://woztorrentz.netlify.app)** 🌐
 
