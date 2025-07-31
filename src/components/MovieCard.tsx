@@ -29,9 +29,9 @@ export const MovieCard = ({
     }
     // Check if it's a fallback TMDB ID (starts with 'tmdb-')
     if (imdbId.startsWith('tmdb-')) {
-      // If we only have a TMDB ID, link to TMDB instead
-      const tmdbId = imdbId.replace('tmdb-', '');
-      window.open(`https://www.themoviedb.org/movie/${tmdbId}`, 'imdb_tab');
+      // If we only have a TMDB ID, search IMDB with the movie title and year
+      const searchQuery = `${title} ${year}`;
+      window.open(`https://www.imdb.com/find?q=${encodeURIComponent(searchQuery)}`, 'imdb_tab');
     } else {
       // Use the actual IMDB ID
       window.open(`https://www.imdb.com/title/${imdbId}`, 'imdb_tab');
