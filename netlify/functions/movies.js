@@ -77,11 +77,6 @@ const fetchTMDBList = async (listType, apiKey) => {
         rank: index + 1,
         popularity: movie.popularity || 0
     }));
-    } catch (error) {
-        clearTimeout(timeoutId);
-        console.error(`Network or fetch error for URL: ${url}`, error);
-        throw error;
-    }
 };
 
 export const handler = async (event, context) => {
