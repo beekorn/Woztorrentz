@@ -35,8 +35,8 @@ const fetchTMDBList = async (listType, apiKey) => {
     }
 
     let allMovies = [];
-    // Reduce to 1 page to prevent timeouts
-    for (let page = 1; page <= 1; page++) {
+    // Fetch 3 pages to get 50+ results
+    for (let page = 1; page <= 3; page++) {
         const url = `${TMDB_BASE_URL}${endpoint}?api_key=${apiKey}&language=en-US&page=${page}`;
         try {
             const controller = new AbortController();
@@ -64,7 +64,7 @@ const fetchTMDBList = async (listType, apiKey) => {
     const uniqueMovies = Array.from(new Map(allMovies.map(movie => [movie.id, movie])).values());
 
     // Return movies without fetching detailed IMDB IDs to prevent timeouts
-    return uniqueMovies.slice(0, 20).map((movie, index) => ({
+    return uniqueMovies.slice(0, 50).map((movie, index) => ({
         imdbId: `tmdb-${movie.id}`, // Use TMDB ID as fallback
         title: movie.title,
         year: movie.release_date ? movie.release_date.substring(0, 4) : 'N/A',
@@ -110,40 +110,31 @@ export const handler = async (event, context) => {
         const TMDB_API_KEY = process.env.TMDB_API_KEY;
         console.log('TMDB_API_KEY present:', !!TMDB_API_KEY);
         
-        // Return mock data for now to test if the function works
-        const mockMovies = [
-            {
-                imdbId: 'tt1234567',
-                title: 'Test Movie 1',
-                year: '2024',
-                posterUrl: 'https://image.tmdb.org/t/p/w500/test1.jpg',
-                backdropUrl: 'https://image.tmdb.org/t/p/w1280/test1.jpg',
-                voteAverage: 8.5,
-                overview: 'This is a test movie to verify the API is working.',
-                rank: 1,
-                popularity: 100
-            },
-            {
-                imdbId: 'tt2345678',
-                title: 'Test Movie 2',
-                year: '2024',
-                posterUrl: 'https://image.tmdb.org/t/p/w500/test2.jpg',
-                backdropUrl: 'https://image.tmdb.org/t/p/w1280/test2.jpg',
-                voteAverage: 7.8,
-                overview: 'Another test movie for API verification.',
-                rank: 2,
-                popularity: 90
-            }
-        ];
+        if (!TMDB_API_KEY) {
+            console.error('TMDB API key not configured');
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ 
+                    success: false,
+                    error: 'TMDB API key not configured',
+                    data: [],
+                    lastUpdated: null,
+                    source: 'TMDB'
+                }),
+            };
+        }
+
+        const movies = await fetchTMDBList(listType, TMDB_API_KEY);
         
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
                 success: true,
-                data: mockMovies,
+                data: movies,
                 lastUpdated: new Date().toISOString(),
-                source: 'Mock Data (Testing)',
+                source: 'TMDB',
                 error: null
             }),
         };
