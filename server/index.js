@@ -21,12 +21,21 @@ const PORT = process.env.PORT || 3002;
 console.log(`Server will run on port: ${PORT}`);
 
 const corsOptions = {
-  origin: 'http://localhost:8080',
+  origin: [
+    'http://localhost:8080',
+    'https://woztorrentz.netlify.app',
+    'https://localhost:5173'
+  ],
   optionsSuccessStatus: 200 // For legacy browser support
 };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Enable pre-flight for all routes
 app.use(express.json());
+
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 console.log(`TMDB_API_KEY loaded: ${TMDB_API_KEY ? 'Yes, ends with ' + TMDB_API_KEY.slice(-4) : 'No, it is undefined!'}`);
