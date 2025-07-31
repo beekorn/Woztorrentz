@@ -109,31 +109,41 @@ export const handler = async (event, context) => {
         
         const TMDB_API_KEY = process.env.TMDB_API_KEY;
         console.log('TMDB_API_KEY present:', !!TMDB_API_KEY);
-        if (!TMDB_API_KEY) {
-            console.error('TMDB API key not configured');
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ 
-                    success: false,
-                    error: 'TMDB API key not configured',
-                    data: [],
-                    lastUpdated: null,
-                    source: 'TMDB'
-                }),
-            };
-        }
-
-        const movies = await fetchTMDBList(listType, TMDB_API_KEY);
+        
+        // Return mock data for now to test if the function works
+        const mockMovies = [
+            {
+                imdbId: 'tt1234567',
+                title: 'Test Movie 1',
+                year: '2024',
+                posterUrl: 'https://image.tmdb.org/t/p/w500/test1.jpg',
+                backdropUrl: 'https://image.tmdb.org/t/p/w1280/test1.jpg',
+                voteAverage: 8.5,
+                overview: 'This is a test movie to verify the API is working.',
+                rank: 1,
+                popularity: 100
+            },
+            {
+                imdbId: 'tt2345678',
+                title: 'Test Movie 2',
+                year: '2024',
+                posterUrl: 'https://image.tmdb.org/t/p/w500/test2.jpg',
+                backdropUrl: 'https://image.tmdb.org/t/p/w1280/test2.jpg',
+                voteAverage: 7.8,
+                overview: 'Another test movie for API verification.',
+                rank: 2,
+                popularity: 90
+            }
+        ];
         
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
                 success: true,
-                data: movies,
+                data: mockMovies,
                 lastUpdated: new Date().toISOString(),
-                source: 'TMDB',
+                source: 'Mock Data (Testing)',
                 error: null
             }),
         };
@@ -146,8 +156,8 @@ export const handler = async (event, context) => {
                 success: false,
                 data: [],
                 lastUpdated: null,
-                source: 'TMDB',
-                error: error.message
+                source: 'Error',
+                error: error.message || 'Unknown error'
             }),
         };
     }
