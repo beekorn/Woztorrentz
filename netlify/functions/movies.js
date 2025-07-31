@@ -35,12 +35,23 @@ const fetchTMDBList = async (listType, apiKey) => {
     }
 
     let allMovies = [];
-    for (let page = 1; page <= 3; page++) {
+    // Reduce to 1 page to prevent timeouts
+    for (let page = 1; page <= 1; page++) {
         const url = `${TMDB_BASE_URL}${endpoint}?api_key=${apiKey}&language=en-US&page=${page}`;
         try {
-            const response = await fetch(url);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+            
+            const response = await fetch(url, { 
+                signal: controller.signal,
+                headers: {
+                    'User-Agent': 'Woztorrentz/1.0'
+                }
+            });
+            clearTimeout(timeoutId);
+            
             if (!response.ok) {
-                throw new Error(`Failed to fetch from TMDB: ${response.statusText}`);
+                throw new Error(`Failed to fetch from TMDB: ${response.status} ${response.statusText}`);
             }
             const data = await response.json();
             allMovies = allMovies.concat(data.results);
@@ -52,19 +63,9 @@ const fetchTMDBList = async (listType, apiKey) => {
 
     const uniqueMovies = Array.from(new Map(allMovies.map(movie => [movie.id, movie])).values());
 
-    // Process movies in parallel to get IMDB IDs
-    const moviesWithDetails = await Promise.all(
-        uniqueMovies.slice(0, 50).map(async (movie) => {
-            const details = await fetchMovieDetails(movie.id, apiKey);
-            return {
-                ...movie,
-                imdb_id: details.imdb_id
-            };
-        })
-    );
-
-    return moviesWithDetails.map((movie, index) => ({
-        imdbId: movie.imdb_id || `tmdb-${movie.id}`,
+    // Return movies without fetching detailed IMDB IDs to prevent timeouts
+    return uniqueMovies.slice(0, 20).map((movie, index) => ({
+        imdbId: `tmdb-${movie.id}`, // Use TMDB ID as fallback
         title: movie.title,
         year: movie.release_date ? movie.release_date.substring(0, 4) : 'N/A',
         posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
@@ -101,15 +102,25 @@ export const handler = async (event, context) => {
     }
 
     try {
+        console.log('Movies function called with path:', event.path);
         const pathParts = event.path.split('/');
         const listType = pathParts[pathParts.length - 1];
+        console.log('List type:', listType);
         
         const TMDB_API_KEY = process.env.TMDB_API_KEY;
+        console.log('TMDB_API_KEY present:', !!TMDB_API_KEY);
         if (!TMDB_API_KEY) {
+            console.error('TMDB API key not configured');
             return {
                 statusCode: 500,
                 headers,
-                body: JSON.stringify({ error: 'TMDB API key not configured' }),
+                body: JSON.stringify({ 
+                    success: false,
+                    error: 'TMDB API key not configured',
+                    data: [],
+                    lastUpdated: null,
+                    source: 'TMDB'
+                }),
             };
         }
 

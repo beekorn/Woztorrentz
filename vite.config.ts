@@ -9,18 +9,26 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:3002',
+      '/api/v1': {
+        target: 'http://127.0.0.1:8011',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
+        rewrite: (path) => path.replace(/^\/api\/v1/, '/api/v1'),
       },
-      '/.netlify/functions': {
-        target: 'http://localhost:9999',
+      '/api/movies': {
+        target: 'http://localhost:8888',
         changeOrigin: true,
-        pathRewrite: {
-          '^/\.netlify/functions': '',
-        },
+        secure: false,
+      },
+      '/api/tv': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/imdb': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+        secure: false,
       },
     },
   },
