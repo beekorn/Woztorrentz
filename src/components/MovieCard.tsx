@@ -1,36 +1,41 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Star, Calendar, User, ExternalLink } from "lucide-react";
+import { Star, Calendar, User, Search, ExternalLink } from "lucide-react";
 
 interface MovieCardProps {
+  onTorrentSearch: (query: string) => void;
   title: string;
   year: string;
-  rating: string;
-  director: string;
-  actors: string;
-  plot: string;
-  poster: string;
-  imdbID: string;
+  voteAverage: number;
+  overview: string;
+  posterUrl: string | null;
+  imdbId: string;
 }
 
 export const MovieCard = ({ 
   title, 
   year, 
-  rating, 
-  director, 
-  actors, 
-  plot, 
-  poster,
-  imdbID 
+  voteAverage,
+  overview,
+  posterUrl,
+  imdbId,
+  onTorrentSearch
 }: MovieCardProps) => {
-  const handleSearchTorrents = () => {
-    // This would integrate with torrent search in a real implementation
-    console.log(`Searching torrents for: ${title}`);
-  };
 
-  const handleViewIMDB = () => {
-    window.open(`https://www.imdb.com/title/${imdbID}`, '_blank');
+  const handleViewIMDB = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    // Check if it's a fallback TMDB ID (starts with 'tmdb-')
+    if (imdbId.startsWith('tmdb-')) {
+      // If we only have a TMDB ID, link to TMDB instead
+      const tmdbId = imdbId.replace('tmdb-', '');
+      window.open(`https://www.themoviedb.org/movie/${tmdbId}`, 'imdb_tab');
+    } else {
+      // Use the actual IMDB ID
+      window.open(`https://www.imdb.com/title/${imdbId}`, 'imdb_tab');
+    }
   };
 
   return (
@@ -39,7 +44,7 @@ export const MovieCard = ({
         <div className="flex flex-col md:flex-row">
           <div className="md:w-48 flex-shrink-0">
             <img 
-              src={poster !== "N/A" ? poster : "/placeholder.svg"} 
+              src={posterUrl || "/placeholder.svg"} 
               alt={title}
               className="w-full h-64 md:h-full object-cover"
             />
@@ -47,14 +52,17 @@ export const MovieCard = ({
           
           <div className="flex-1 p-6 space-y-4">
             <div className="space-y-2">
-              <h3 className="text-xl font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer">
+              <h3 
+                onClick={handleViewIMDB}
+                className="text-xl font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer"
+              >
                 {title} ({year})
               </h3>
               
               <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                 <div className="flex items-center space-x-1">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span>{rating}</span>
+                  <span>{(voteAverage || 0).toFixed(1)}</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Calendar className="w-4 h-4" />
@@ -62,26 +70,20 @@ export const MovieCard = ({
                 </div>
               </div>
               
-              <div className="flex items-center space-x-1 text-sm">
-                <User className="w-4 h-4 text-muted-foreground" />
-                <span className="text-muted-foreground">{director}</span>
-              </div>
               
-              <div className="text-sm text-muted-foreground">
-                <strong>Cast:</strong> {actors}
-              </div>
             </div>
             
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {plot}
+              {overview}
             </p>
             
             <div className="flex space-x-3 pt-4">
               <Button 
                 variant="default" 
-                onClick={handleSearchTorrents}
-                className="flex-1"
+                onClick={() => onTorrentSearch(title)}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
               >
+                <Search className="w-4 h-4 mr-2" />
                 Search Torrents
               </Button>
               <Button 

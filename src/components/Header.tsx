@@ -16,16 +16,16 @@ export const Header = ({ onSearch, currentView, onViewChange }: HeaderProps) => 
     e.preventDefault();
     if (searchQuery.trim()) {
       onSearch(searchQuery);
+      setSearchQuery("");
     }
   };
 
   const navItems = [
-    { id: "home", label: "FULL HOME PAGE" },
-    { id: "top100", label: "TOP 100" },
-    { id: "trending", label: "TRENDING" },
-    { id: "contact", label: "CONTACT" },
-    { id: "upload", label: "UPLOAD" },
-    { id: "imdb", label: "IMDB TOP MOVIES" },
+    { id: "home", label: "Search" },
+    { id: "top100", label: "Top 100" },
+    { id: 'imdb', label: 'Movie Database (TMDB)' },
+    { id: "moviemeter", label: "IMDB Movie Meter" },
+    { id: "tvmeter", label: "IMDB TV Meter" },
   ];
 
   return (
@@ -36,10 +36,18 @@ export const Header = ({ onSearch, currentView, onViewChange }: HeaderProps) => 
             <Button
               key={item.id}
               variant="ghost"
-              onClick={() => onViewChange(item.id)}
+              onClick={() => {
+                if (item.id === 'moviemeter') {
+                  window.open('https://www.imdb.com/chart/moviemeter', 'imdb_tab');
+                } else if (item.id === 'tvmeter') {
+                  window.open('https://www.imdb.com/chart/tvmeter', 'imdb_tab');
+                } else {
+                  onViewChange(item.id);
+                }
+              }}
               className={`text-sm font-medium transition-colors ${
-                currentView === item.id 
-                  ? "text-primary" 
+                currentView === item.id
+                  ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -47,15 +55,22 @@ export const Header = ({ onSearch, currentView, onViewChange }: HeaderProps) => 
             </Button>
           ))}
         </div>
-        
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" className="text-sm font-medium">
-            REGISTER
-          </Button>
-          <Button variant="ghost" className="text-sm font-medium text-primary">
-            LOGIN
-          </Button>
-        </div>
+
+        <form onSubmit={handleSearch} className="flex w-full max-w-md items-center space-x-2">
+          <div className="relative flex-grow">
+            <Input
+              type="search"
+              placeholder="Search IMDB..."
+              className="w-full pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Search className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </div>
+          <Button type="submit">Search</Button>
+        </form>
       </nav>
     </header>
   );

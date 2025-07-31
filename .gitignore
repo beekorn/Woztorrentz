@@ -22,3 +22,51 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+PYTHON_ARGCOMPLETE_OK
+
+# Local Netlify folder
+.netlify
+
+# Archives and temporary files
+*.rar
+*.zip
+*.tar.gz
+*.7z
+*.bat
+*.ps1
+server-output.txt
+backend-frontend.txt
+maximize_chrome.ps1
+setup.bat
+start.bat
+Woztorrentz.rar
+windsurf_deployment.yaml

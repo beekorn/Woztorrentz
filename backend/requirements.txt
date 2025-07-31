@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+mangum
+beautifulsoup4
+cloudscraper
+flask
+flask-cors
+gunicorn
+lxml
+python-multipart
+requests
+
+
+
+
