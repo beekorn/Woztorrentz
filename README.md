@@ -1,6 +1,6 @@
 # Woztorrentz - IMDB Torrent Stream
 
-A comprehensive web-based platform for searching torrents and streaming movies/TV shows. The application combines TMDB movie/TV data with torrent scraping from multiple sources, plus a Top 100 section powered by Pirate Bay data.
+A comprehensive web-based platform for searching torrents and discovering movies/TV shows. The application combines TMDB movie/TV data with torrent scraping from multiple sources, plus a Top 100 section powered by Pirate Bay data. Features real-time movie data, intelligent IMDB linking, and multi-source torrent search.
 
 ## 🚀 Key Features
 
@@ -21,6 +21,15 @@ A comprehensive web-based platform for searching torrents and streaming movies/T
 - **Dark Theme**: Modern dark UI with intuitive navigation
 - **Quick Actions**: One-click torrent search, IMDB lookup, and streaming
 - **Smart Ranking**: Properly numbered lists with ranking badges
+- **Intelligent IMDB Integration**: Automatic IMDB search when direct links aren't available
+- **Fast Performance**: Optimized API calls with timeout handling and error recovery
+
+### 🆕 Recent Improvements
+- **Enhanced Movie Data**: Now fetches 50 movies from TMDB with better error handling
+- **Fixed IMDB Links**: Movie Database section now properly searches IMDB instead of redirecting to TMDB
+- **Improved API Performance**: Optimized Netlify functions with proper timeout handling
+- **Better Error Recovery**: Robust error handling and fallback mechanisms
+- **Environment Variable Support**: Proper configuration for both local and production environments
 
 ## 🌐 API Endpoints
 
@@ -173,3 +182,160 @@ This script automates the entire startup process:
 4.  **Opens Browser:** Automatically opens the application in a new Chrome window.
 
 This is the recommended way to run the application for development.
+
+---
+
+## 🚀 Deployment
+
+### Netlify Deployment (Recommended)
+
+This application is optimized for Netlify deployment with serverless functions:
+
+1. **Connect to GitHub**: Link your Netlify account to this repository
+2. **Environment Variables**: Set the following in Netlify dashboard:
+   - `TMDB_API_KEY`: Your TMDB API key
+3. **Build Settings**: 
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+   - Functions directory: `netlify/functions`
+4. **Deploy**: Netlify will automatically deploy on every push to main branch
+
+**Live Demo**: The application includes Netlify Functions for:
+- Movie/TV data from TMDB (`/api/movies/*`, `/api/tv/*`)
+- IMDB MovieMeter integration (`/api/imdb/moviemeter`)
+
+### Local Development Setup
+
+#### Option 1: Automated Setup (Windows)
+Use the provided batch scripts for easy setup:
+```sh
+.\setup.bat    # One-time setup
+.\start.bat    # Start all services
+```
+
+#### Option 2: Manual Setup
+
+**Frontend Setup:**
+```sh
+npm install
+npm run dev          # Starts Vite dev server on port 8080
+```
+
+**Node.js Backend Setup:**
+```sh
+cd server
+npm install
+npm start           # Starts Express server on port 3002
+```
+
+**Python Backend Setup:**
+```sh
+cd backend
+pip install -r requirements.txt
+python main.py      # Starts FastAPI server on port 8011
+```
+
+**Access Points:**
+- Frontend: `http://localhost:8080`
+- Node.js API: `http://localhost:3002`
+- Python Torrent API: `http://localhost:8011`
+
+---
+
+## 🔧 Development
+
+### API Configuration
+
+The application uses different API endpoints for different environments:
+
+- **Production (Netlify)**: Uses Netlify Functions at `/api/*`
+- **Local Development**: Uses local servers with proxy configuration
+
+### Vite Proxy Configuration
+
+For local development, Vite proxies API requests:
+```javascript
+// vite.config.ts
+proxy: {
+  '/api/v1': 'http://127.0.0.1:8011',     // Python torrent API
+  '/api/movies': 'http://localhost:8888',  // Netlify functions (local)
+  '/api/tv': 'http://localhost:8888',      // Netlify functions (local)
+}
+```
+
+### Environment Variables
+
+**Local Development (`.env`):**
+```
+TMDB_API_KEY=your_tmdb_api_key_here
+```
+
+**Production (Netlify Environment Variables):**
+- Set `TMDB_API_KEY` in Netlify dashboard under Site Settings → Environment Variables
+
+---
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+**TMDB API 500 Errors:**
+- Ensure `TMDB_API_KEY` is properly set in environment variables
+- For Netlify: Redeploy after setting environment variables
+- Check if API key is valid at [TMDB Settings](https://www.themoviedb.org/settings/api)
+
+**Torrent Search Not Working:**
+- Ensure Python backend is running on port 8011
+- Check if torrent sites are accessible (some may be blocked)
+- Verify FastAPI server logs for errors
+
+**IMDB Links Redirecting to TMDB:**
+- This has been fixed in recent updates
+- Clear browser cache and refresh
+- Links now search IMDB when direct IMDB IDs aren't available
+
+**Port Conflicts:**
+- Frontend: Port 8080 (Vite)
+- Node.js Backend: Port 3002 (Express)
+- Python Backend: Port 8011 (FastAPI)
+- Use `netstat -an | findstr "8080"` to check port usage
+
+### Performance Optimization
+
+- **Movie Data**: Now fetches 50 movies with optimized API calls
+- **Timeout Handling**: 5-second timeouts prevent hanging requests
+- **Error Recovery**: Robust fallback mechanisms for API failures
+- **Caching**: Browser caching for movie posters and data
+
+---
+
+## 📝 Recent Changelog
+
+### v2.1.0 (Latest)
+- ✅ Fixed IMDB links in Movie Database section
+- ✅ Enhanced Netlify Functions with proper error handling
+- ✅ Increased movie results from 20 to 50
+- ✅ Improved API performance with timeout handling
+- ✅ Added environment variable support for deployment
+- ✅ Optimized proxy configuration for local development
+
+### v2.0.0
+- 🎬 Added TMDB integration for live movie data
+- 🏴‍☠️ Multi-source torrent search functionality
+- 📱 Responsive dark theme UI
+- 🔗 Intelligent IMDB linking system
+- 📊 Top 100 torrent lists by category
+
+---
+
+## 📄 License
+
+This project is for educational purposes only. Users are responsible for complying with their local laws regarding torrenting and copyright.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit issues or pull requests.
+
+---
+
+**Note**: This application is designed for educational and research purposes. Please ensure you comply with your local laws and the terms of service of the APIs and torrent sites used.
