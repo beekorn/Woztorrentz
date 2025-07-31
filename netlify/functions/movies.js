@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+// Using native fetch (Node.js 18+)
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
