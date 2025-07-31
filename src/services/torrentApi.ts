@@ -1,3 +1,5 @@
+import { getApiUrl } from '../config/api';
+
 interface TorrentResult {
     name: string;
     size: string;
@@ -22,7 +24,9 @@ interface TorrentApiResponse {
 }
 
 export class TorrentApiService {
-    private static readonly BASE_URL = 'http://localhost:8011/api/v1';
+    private static get BASE_URL(): string {
+        return `${getApiUrl('torrent')}/api/v1`;
+    }
 
     // Working sites based on testing (updated regularly)
     private static readonly WORKING_SITES = [

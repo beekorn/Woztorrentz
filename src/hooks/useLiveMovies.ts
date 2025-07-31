@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { getApiUrl } from '../config/api';
 
 
 interface Movie {
@@ -36,8 +37,9 @@ export const useLiveMovies = (listType: string = 'popular'): UseLiveMoviesReturn
     try {
       const isTv = listType.startsWith('tv-');
       const apiPath = isTv ? `/api/tv/${listType.replace('tv-', '')}` : `/api/movies/${listType}`;
+      const fullUrl = `${getApiUrl('backend')}${apiPath}`;
       
-      const response = await fetch(apiPath);
+      const response = await fetch(fullUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch: ${response.statusText}`);
       }
