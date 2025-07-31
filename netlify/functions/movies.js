@@ -34,47 +34,44 @@ const fetchTMDBList = async (listType, apiKey) => {
         throw new Error(`Invalid list type: ${listType}`);
     }
 
-    let allMovies = [];
-    // Fetch 3 pages to get 50+ results
-    for (let page = 1; page <= 3; page++) {
-        const url = `${TMDB_BASE_URL}${endpoint}?api_key=${apiKey}&language=en-US&page=${page}`;
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-            
-            const response = await fetch(url, { 
-                signal: controller.signal,
-                headers: {
-                    'User-Agent': 'Woztorrentz/1.0'
-                }
-            });
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-                throw new Error(`Failed to fetch from TMDB: ${response.status} ${response.statusText}`);
+    // Fetch only first page for speed
+    const url = `${TMDB_BASE_URL}${endpoint}?api_key=${apiKey}&language=en-US&page=1`;
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
+    try {
+        const response = await fetch(url, { 
+            signal: controller.signal,
+            headers: {
+                'User-Agent': 'Woztorrentz/1.0'
             }
-            const data = await response.json();
-            allMovies = allMovies.concat(data.results);
-        } catch (error) {
-            console.error(`Network or fetch error for URL: ${url}`, error);
-            throw error;
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch from TMDB: ${response.status} ${response.statusText}`);
         }
+        
+        const data = await response.json();
+        
+        // Return first 20 movies for speed
+        return data.results.slice(0, 20).map((movie, index) => ({
+            imdbId: `tmdb-${movie.id}`,
+            title: movie.title,
+            year: movie.release_date ? movie.release_date.substring(0, 4) : 'N/A',
+            posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+            backdropUrl: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null,
+            voteAverage: movie.vote_average || 0,
+            overview: movie.overview,
+            rank: index + 1,
+            popularity: movie.popularity || 0
+        }));
+    } catch (error) {
+        clearTimeout(timeoutId);
+        console.error(`Network or fetch error for URL: ${url}`, error);
+        throw error;
     }
-
-    const uniqueMovies = Array.from(new Map(allMovies.map(movie => [movie.id, movie])).values());
-
-    // Return movies without fetching detailed IMDB IDs to prevent timeouts
-    return uniqueMovies.slice(0, 50).map((movie, index) => ({
-        imdbId: `tmdb-${movie.id}`, // Use TMDB ID as fallback
-        title: movie.title,
-        year: movie.release_date ? movie.release_date.substring(0, 4) : 'N/A',
-        posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
-        backdropUrl: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null,
-        voteAverage: movie.vote_average || 0,
-        overview: movie.overview,
-        rank: index + 1,
-        popularity: movie.popularity || 0
-    }));
 };
 
 export const handler = async (event, context) => {
