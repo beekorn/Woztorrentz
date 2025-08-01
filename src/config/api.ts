@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
   // Backend API URL (deployed on Vercel - lightning fast!)
-  BACKEND_URL: 'https://woztorrentz-24d15sgk4-beekorns-projects.vercel.app',
+  BACKEND_URL: 'https://woztorrentz-47aqsv64x-beekorns-projects.vercel.app',
   
   // Torrent API URL (using Render for heavy scraping operations)
   TORRENT_API_URL: 'https://woztorrentz-backend.onrender.com',
