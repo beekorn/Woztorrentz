@@ -152,6 +152,85 @@ export class TorrentApiService {
         return this.WORKING_SITES[0] || 'piratebay';
     }
 
+    static async getTop100Categories(): Promise<{ success: boolean; data?: any; error?: string }> {
+        try {
+            const response = await fetch(`${this.BASE_URL}/top100/categories`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            return {
+                success: true,
+                data: data
+            };
+        } catch (error) {
+            console.error('Top100 categories error:', error);
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred'
+            };
+        }
+    }
+
+    static async getTop100Movies(page: number = 1, limit: number = 100): Promise<TorrentApiResponse> {
+        try {
+            const params = new URLSearchParams({
+                page: page.toString(),
+                limit: limit.toString()
+            });
+
+            const response = await fetch(`${this.BASE_URL}/top100/movies?${params}`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            return {
+                success: true,
+                data: data
+            };
+        } catch (error) {
+            console.error('Top100 movies error:', error);
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred'
+            };
+        }
+    }
+
+    static async getTop100ByCategory(category: string, page: number = 1, limit: number = 100): Promise<TorrentApiResponse> {
+        try {
+            const params = new URLSearchParams({
+                page: page.toString(),
+                limit: limit.toString()
+            });
+
+            const response = await fetch(`${this.BASE_URL}/top100/category/${category}?${params}`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            return {
+                success: true,
+                data: data
+            };
+        } catch (error) {
+            console.error('Top100 category error:', error);
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred'
+            };
+        }
+    }
+
     static async searchWithFallback(query: string, preferredSite?: string): Promise<TorrentApiResponse> {
         const sitesToTry = preferredSite
             ? [preferredSite, ...this.WORKING_SITES.filter(s => s !== preferredSite)]

@@ -3,6 +3,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TorrentApiService, type TorrentResult } from "@/services/torrentApi";
+import { TorrentCard } from "@/components/TorrentCard";
 
 interface Top100Props {
   onImdbSearch: (query: string) => void;
@@ -14,22 +16,36 @@ export const Top100 = ({ onImdbSearch, onTorrentSearch }: Top100Props) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [contentType, setContentType] = useState('hd_movies');
+  const [categories, setCategories] = useState<{ value: string; label: string; }[]>([]);
+  const [torrents, setTorrents] = useState<TorrentResult[]>([]);
 
   useEffect(() => {
-    // Simulate loading and show that this feature is not implemented yet
-    setTimeout(() => {
-      setError('Top 100 feature requires additional backend APIs that are not yet implemented.');
-      setLoading(false);
-    }, 1000);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const categoryResponse = await TorrentApiService.getTop100Categories();
+        if (!categoryResponse.success) {
+          throw new Error(categoryResponse.error);
+        }
+        setCategories(categoryResponse.data.categories);
+
+        const torrentsResponse = await TorrentApiService.getTop100ByCategory(contentType);
+        if (!torrentsResponse.success) {
+          throw new Error(torrentsResponse.error);
+        }
+        setTorrents(torrentsResponse.data.data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [contentType]);
 
   const handleContentTypeChange = (value: string) => {
     setContentType(value);
-    setLoading(true);
-    setTimeout(() => {
-      setError('Top 100 feature requires additional backend APIs that are not yet implemented.');
-      setLoading(false);
-    }, 1000);
   };
 
   if (loading) {
@@ -53,17 +69,12 @@ export const Top100 = ({ onImdbSearch, onTorrentSearch }: Top100Props) => {
               <SelectValue placeholder="Select content type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="hd_movies">HD Movies</SelectItem>
-              <SelectItem value="movies">Movies</SelectItem>
-              <SelectItem value="music">Music</SelectItem>
-              <SelectItem value="games">Games</SelectItem>
+              {categories.map(category => (
+                <SelectItem key={category.value} value={category.value}>{category.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Badge variant="outline">Feature Coming Soon</Badge>
         </div>
-        <p className="text-muted-foreground mb-4">
-          Top 100 lists will be available once the backend APIs are implemented.
-        </p>
         {error && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
             <p className="text-yellow-800 text-sm">
@@ -72,6 +83,24 @@ export const Top100 = ({ onImdbSearch, onTorrentSearch }: Top100Props) => {
             <p className="text-yellow-700 text-sm mt-2">
               You can still use the main movie/TV browsing and torrent search features available in other sections.
             </p>
+          </div>
+        )}
+        {!error && torrents.length > 0 && (
+          <div className="mt-6">
+            <h2 className="text-2xl font-semibold mb-4">Top 100 {contentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {torrents.map((torrent, index) => (
+                <div key={torrent.hash || index} className="relative">
+                  <div className="absolute -top-2 -left-2 bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold z-10">
+                    {index + 1}
+                  </div>
+                  <TorrentCard 
+                    {...torrent}
+                    category={contentType.replace('_', ' ')}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
