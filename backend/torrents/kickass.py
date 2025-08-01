@@ -10,7 +10,7 @@ class Kickass:
     _name = "Kickass"
 
     def __init__(self):
-        self.BASE_URL = "https://kickasstorrents.to"
+        self.BASE_URL = "https://katcr.to"
         self.LIMIT = None
         self.scraper = cloudscraper.create_scraper()
 

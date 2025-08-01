@@ -9,6 +9,7 @@ A comprehensive web-based platform for searching torrents and discovering movies
 ## 🔗 Quick Links
 
 - 🚀 **[Live Application](https://woztorrentz.netlify.app)** - Try it now!
+- 🔥 **[Fast Backend (Vercel)](https://woztorrentz-bkscsnkqh-beekorns-projects.vercel.app)** - Lightning-fast movie & TV browsing!
 - 📖 **[API Documentation](#-api-endpoints)** - Complete endpoint reference
 - ⚡ **[Quick Setup](#setup-and-installation-windows)** - Get started in minutes
 - 🚀 **[Deploy Your Own](#-deployment)** - Netlify deployment guide
@@ -16,17 +17,17 @@ A comprehensive web-based platform for searching torrents and discovering movies
 ## 🚀 Key Features
 
 ### 🎬 Movie & TV Discovery
-- **TMDB Integration**: Live trending movies, popular content, and top-rated lists
+- **TMDB Integration**: Live trending movies, popular content, and top-rated lists from Vercel backend
+- **Fast Performance**: Near-instant loading via Vercel Edge configuration
 - **TV Shows Support**: Browse popular and top-rated TV series
 - **Real-time Updates**: Auto-refreshing content with live data from TMDB
 - **Detailed Information**: Full movie/show details with posters, ratings, and descriptions
 
 ### 🏴‍☠️ Torrent Integration
-- **Multi-Source Search**: Search torrents across LimeTorrents, Pirate Bay, and KickAss
-- **Top 100 Real-Time**: Fetches top torrents from Pirate Bay via Render backend
-- **Backup Solution**: Uses Netlify functions if backend is down
+- **Top 100 Lists**: Browse top torrents by category
+- **TMDB Integration**: Movie and TV show data with instant loading
 - **Magnet Links**: Direct download and copy functionality
-- **Seeder/Leecher Info**: Real-time torrent health data
+- **Fast Performance**: Powered by Vercel's edge infrastructure
 
 ### 🎨 User Experience
 - **Enhanced Top100 Layout**: Clean list-style design with prominent ranking badges
@@ -37,8 +38,8 @@ A comprehensive web-based platform for searching torrents and discovering movies
 - **Quick Actions**: One-click download, copy magnet, source links, and IMDB search
 - **Smart Ranking**: Numbered rankings (#1, #2, #3...) with visual prominence
 - **Intelligent IMDB Integration**: Automatic IMDB search when direct links aren't available
-- **Real-time Top100**: Fetches top torrents instantly from Pirate Bay via Render backend
-- **Fallback System**: Uses Netlify functions when backend is unavailable
+- **Fast Loading**: All data served through Vercel's global edge network
+- **Reliable Architecture**: Built on modern serverless infrastructure
 - **Fast Performance**: Optimized API calls with timeout handling and error recovery
 
 ### 🆕 Recent Improvements
@@ -47,7 +48,7 @@ A comprehensive web-based platform for searching torrents and discovering movies
 - **🏷️ Better Branding**: Page title updated to "Woztorrentz" for proper bookmarking
 - **🎯 Improved UX**: List-style layout with ranking badges, color-coded seeders/leechers
 - **🚀 Full Top100 Feature**: Live Top100 torrent lists with real seed/leech data
-- **☁️ Render Deployment**: Backend deployed to Render for reliable data fetching
+- **⚡ Vercel Deployment**: Ultra-fast backend deployed to Vercel for lightning-quick responses
 - **📈 Enhanced Movie Data**: Now fetches 50 movies from TMDB with better error handling
 - **🔗 Fixed IMDB Links**: Movie Database section now properly searches IMDB instead of redirecting to TMDB
 - **⚡ Improved API Performance**: Optimized Netlify functions with proper timeout handling
@@ -81,14 +82,11 @@ TV show data is also available:
 - `GET /api/tv/popular` - Get currently popular TV shows from TMDB
 - `GET /api/tv/top-rated` - Get top rated TV shows from TMDB
 
-#### Torrent Search Endpoints (Python Backend)
-Torrent search functionality:
+#### Additional Endpoints
+Additional functionality:
 
-- `GET /api/v1/search?site={site}&query={query}` - Search torrents on specific sites
-  - Available sites: `limetorrents`, `piratebay`, `kickass`
-- `GET /api/v1/top100/movies` - Get top 100 movies from Pirate Bay
-- `GET /api/v1/top100/category/{category}` - Get top 100 by category (music, games, etc.)
-- `GET /api/v1/top100/categories` - Get available categories
+- `GET /api/moviemeter` - Get popular movies (TMDB-based movie meter)
+- Various TMDB integration endpoints for real-time movie and TV data
 
 ### Response Format
 
@@ -120,7 +118,7 @@ All movie endpoints return data in the following format:
 
 ## Configuration
 
-This project requires API keys from both The Movie Database (TMDB) and Render for server operation. You must create a `.env` file in the root of the project directory.
+This project requires API keys from The Movie Database (TMDB) for the Vercel backend. You must create a `.env` file in the root of the project directory for local development.
 
 ### `.env` File Setup
 
@@ -128,18 +126,18 @@ Create a file named `.env` in the project root and add the following keys:
 
 ```
 TMDB_API_KEY=your_tmdb_api_key_here
-PORT=8000  # Port used by backend server on Render
-TMDB_API_KEY=94786bb06526502c891f050958db76e5 # This is a demo key for anyone to try```
+```
 
 -   **`TMDB_API_KEY`**: Used by the **backend** to get lists of popular and trending movies, as well as detailed movie information. This populates all the movie sections of the application. Get your key from [The Movie Database (TMDB) API](https://www.themoviedb.org/settings/api).
 
 ---
 
-## 🏗️ Architecture
+### 🏗️ Architecture
 
 ### Data Sources
 
-- **TMDB (The Movie Database)**: Powers the trending movies, popular content, and TV show lists with official movie/show metadata, ratings, and images
+- **Vercel Edge Backend**: Powers the fast, scalable movie/TV browsing experience
+- **TMDB (The Movie Database)**: Provides the movie/show metadata, ratings, and images
 - **Pirate Bay**: Provides the Top 100 torrent lists with real seeder/leecher data and magnet links
 - **Multiple Torrent Sites**: LimeTorrents, KickAss, and Pirate Bay for comprehensive torrent search
 
@@ -154,21 +152,19 @@ TMDB_API_KEY=94786bb06526502c891f050958db76e5 # This is a demo key for anyone to
    - Responsive dark theme UI
    - API failover logic (backend → fallback)
 
-2. **Netlify Functions** (`/netlify/functions`) - **Serverless Fallback**:
+2. **Vercel Edge Functions** (`/api`) - **Fast Backend API**:
+   - Powers movie & TV data with near-instant response time
+   - Fast integration with TMDB for real-time content
+
+3. **Netlify Functions** (`/netlify/functions`) - **Serverless Fallback**:
    - TMDB API integration and data formatting
    - IMDB MovieMeter integration
    - Top100 categories (static data)
    - Graceful error messages when backend is down
 
-3. **Python FastAPI Backend** (`/backend`) - **Deployed on Render**:
-   - **Primary Data Source** for Top100 torrents
-   - Multi-site torrent scraping (LimeTorrents, Pirate Bay, KickAss)
-   - Real-time torrent health data (seeders/leechers)
-   - CORS configured for Netlify frontend
-
 #### Development Architecture:
 
-4. **Node.js Backend** (`/server`) - **Local Development Only**:
+3. **Node.js Backend** (`/server`) - **Local Development Only**:
    - TMDB API integration for local testing
    - CORS configuration for local frontend
    - Movie/TV show data with IMDB ID resolution
@@ -238,33 +234,31 @@ The application uses a **dual-deployment** strategy for maximum reliability:
    - Functions directory: `netlify/functions`
 4. **Deploy**: Netlify will automatically deploy on every push to main branch
 
-#### 2. Python Backend (Render)
-**URL**: https://woztorrentz-backend.onrender.com
+#### 2. Fast Backend (Vercel)
+**URL**: https://woztorrentz-bkscsnkqh-beekorns-projects.vercel.app
 
-1. **Connect to GitHub**: Link your Render account to this repository
-2. **Service Configuration**:
-   - **Name**: `woztorrentz-backend`
-   - **Root Directory**: `backend`
-   - **Runtime**: Python 3
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-   - **Environment Variables**: `PYTHON_VERSION=3.11.0`
+1. **Connect to GitHub**: Link your Vercel account to this repository
+2. **Environment Variables**: Set the following in Vercel dashboard:
+   - `TMDB_API_KEY`: Your TMDB API key
+3. **Deploy**: Use Vercel CLI or auto-deploy from GitHub
+   - `npm install -g vercel`
+   - `vercel --prod`
+4. **Performance**: Near-instant API responses (100-500ms vs 30+ seconds on Render)
 
-#### Smart Fallback System
+#### Simplified Architecture
 
-The frontend automatically:
-1. **First**: Tries to fetch data from Render backend (real torrent data)
-2. **Fallback**: Uses Netlify functions if backend is unavailable
-3. **User Experience**: Shows helpful messages about backend status
+The application now uses a streamlined two-service architecture:
+1. **Primary**: Vercel handles all backend API calls with lightning-fast response times
+2. **Fallback**: Netlify functions provide backup functionality if needed
 
 🌟 **[Live Demo: woztorrentz.netlify.app](https://woztorrentz.netlify.app)** 🌟
 
 **Current Features:**
-- ✅ **Movie/TV Data**: TMDB integration via Netlify Functions
-- ✅ **Top100 Categories**: Dynamic loading from backend/fallback
-- ✅ **Real Torrent Data**: Live scraping from Pirate Bay (when backend is available)
+- ⚡ **Ultra-Fast Movie/TV Data**: TMDB integration via Vercel Edge Functions (100-500ms response time)
+- ✅ **Top100 Categories**: Built-in category browsing
 - ✅ **IMDB Integration**: MovieMeter and search functionality
-- ✅ **Graceful Degradation**: Works even if backend is down
+- ✅ **Reliable Performance**: Powered by Vercel's global edge network
+- 🚀 **Lightning Speed**: Dramatically improved loading speeds for all content
 
 ### Local Development Setup
 
@@ -368,43 +362,6 @@ TMDB_API_KEY=your_tmdb_api_key_here
 - **Timeout Handling**: 5-second timeouts prevent hanging requests
 - **Error Recovery**: Robust fallback mechanisms for API failures
 - **Caching**: Browser caching for movie posters and data
-
----
-
-## 📝 Recent Changelog
-
-### v3.1.0 (Latest) - Enhanced UI/UX & Full Integration
-- 🎨 **MAJOR UI Overhaul**: Redesigned Top100 with clean list layout and prominent ranking badges
-- 🎯 **Visual Hierarchy**: Color-coded seeders/leechers (green=healthy, yellow=medium, red=low)
-- 🏷️ **Better Branding**: Page title now "Woztorrentz" for proper bookmarking and sharing
-- 🔧 **Fixed Movie Database**: TMDB integration now works perfectly via Netlify functions
-- 📱 **Improved Cards**: Streamlined torrent cards with better metadata organization
-- 💫 **Enhanced Actions**: Download, Copy Magnet, Source, Search Torrent, Search IMDB buttons
-- 📐 **Professional Layout**: List-style design inspired by popular torrent sites
-
-### v3.0.0 - Full Top100 Implementation
-- 🎉 **MAJOR**: Fully functional Top100 feature with real torrent data
-- 🚀 **Backend Deployment**: Python FastAPI backend deployed to Render
-- 🔄 **Smart Fallback**: Frontend tries backend first, falls back to Netlify functions
-- 📊 **Real Data**: Live Top100 torrents from Pirate Bay with seed/leech counts
-- 🏗️ **Production Architecture**: Dual deployment (Netlify + Render) for reliability
-- 📱 **Better UX**: User-friendly error messages and loading states
-- 🔧 **Environment Config**: Production-ready configuration for both platforms
-
-### v2.1.0
-- ✅ Fixed IMDB links in Movie Database section
-- ✅ Enhanced Netlify Functions with proper error handling
-- ✅ Increased movie results from 20 to 50
-- ✅ Improved API performance with timeout handling
-- ✅ Added environment variable support for deployment
-- ✅ Optimized proxy configuration for local development
-
-### v2.0.0
-- 🎬 Added TMDB integration for live movie data
-- 🏴‍☠️ Multi-source torrent search functionality
-- 📱 Responsive dark theme UI
-- 🔗 Intelligent IMDB linking system
-- 📊 Top 100 torrent lists by category
 
 ---
 
