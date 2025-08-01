@@ -1,10 +1,10 @@
 // API Configuration
 export const API_CONFIG = {
   // Backend API URL (deployed on Vercel - lightning fast!)
-  BACKEND_URL: 'https://woztorrentz-bkscsnkqh-beekorns-projects.vercel.app',
+  BACKEND_URL: 'https://woztorrentz-4669d5fd0-beekorns-projects.vercel.app',
   
   // Torrent API URL (also using Vercel for consistency)
-  TORRENT_API_URL: 'https://woztorrentz-bkscsnkqh-beekorns-projects.vercel.app',
+  TORRENT_API_URL: 'https://woztorrentz-4669d5fd0-beekorns-projects.vercel.app',
   
   // Netlify site URL for fallback functions
   NETLIFY_URL: 'https://woztorrentz.netlify.app',
