@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TorrentApiService, type TorrentResult } from "@/services/torrentApi";
 import { TorrentCard } from "@/components/TorrentCard";
+import { getApiUrl } from "@/config/api";
 
 interface Top100Props {
   onImdbSearch: (query: string) => void;
@@ -20,20 +21,20 @@ export const Top100 = ({ onImdbSearch, onTorrentSearch }: Top100Props) => {
   const [torrents, setTorrents] = useState<TorrentResult[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
+const fetchData = async () => {
       setLoading(true);
       try {
-        const categoryResponse = await TorrentApiService.getTop100Categories();
-        if (!categoryResponse.success) {
-          throw new Error(categoryResponse.error);
-        }
-        setCategories(categoryResponse.data.categories);
+        const categoryResponse = await fetch(`${getApiUrl('netlify')}/api/v1/top100/categories`);
+        const categoryData = await categoryResponse.json();
+        setCategories(categoryData.categories || []);
 
-        const torrentsResponse = await TorrentApiService.getTop100ByCategory(contentType);
-        if (!torrentsResponse.success) {
-          throw new Error(torrentsResponse.error);
+        const torrentsResponse = await fetch(`${getApiUrl('netlify')}/api/v1/top100/category/${contentType}`);
+        const torrentData = await torrentsResponse.json();
+
+        if (torrentData.error) {
+          throw new Error(torrentData.message);
         }
-        setTorrents(torrentsResponse.data.data);
+        setTorrents(torrentData.data || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
