@@ -1,10 +1,9 @@
 // API Configuration
 export const API_CONFIG = {
-  // Backend API URL (deployed on Render)
-  // Update this URL once your Render deployment is live
-  BACKEND_URL: 'https://woztorrentz-backend.onrender.com',
+  // Backend API URL (deployed on Vercel - much faster than Render!)
+  BACKEND_URL: 'https://woztorrentz-mn5eprkh5-beekorns-projects.vercel.app',
   
-  // Torrent API URL (if different)
+  // Torrent API URL (fallback to render for torrent scraping)
   TORRENT_API_URL: 'https://woztorrentz-backend.onrender.com',
   
   // Netlify site URL for fallback functions
