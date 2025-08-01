@@ -29,23 +29,29 @@ A comprehensive web-based platform for searching torrents and discovering movies
 - **Seeder/Leecher Info**: Real-time torrent health data
 
 ### 🎨 User Experience
+- **Enhanced Top100 Layout**: Clean list-style design with prominent ranking badges
+- **Color-coded Health**: Green/yellow/red indicators for seeder/leecher counts
+- **Professional Cards**: Streamlined torrent cards with better metadata organization
 - **Responsive Design**: Works seamlessly on desktop and mobile
 - **Dark Theme**: Modern dark UI with intuitive navigation
-- **Quick Actions**: One-click torrent search, IMDB lookup, and streaming
-- **Smart Ranking**: Properly numbered lists with ranking badges
+- **Quick Actions**: One-click download, copy magnet, source links, and IMDB search
+- **Smart Ranking**: Numbered rankings (#1, #2, #3...) with visual prominence
 - **Intelligent IMDB Integration**: Automatic IMDB search when direct links aren't available
 - **Real-time Top100**: Fetches top torrents instantly from Pirate Bay via Render backend
 - **Fallback System**: Uses Netlify functions when backend is unavailable
 - **Fast Performance**: Optimized API calls with timeout handling and error recovery
 
 ### 🆕 Recent Improvements
-- **Full Top100 Feature**: Live Top100 torrent lists with real seed/leech data
-- **Render Deployment**: Backend deployed to Render for reliable data fetching
-- **Enhanced Movie Data**: Now fetches 50 movies from TMDB with better error handling
-- **Fixed IMDB Links**: Movie Database section now properly searches IMDB instead of redirecting to TMDB
-- **Improved API Performance**: Optimized Netlify functions with proper timeout handling
-- **Better Error Recovery**: Robust error handling and fallback mechanisms
-- **Environment Variable Support**: Proper configuration for both local and production environments
+- **📊 Enhanced Top100 Layout**: Redesigned with better visual hierarchy, cleaner cards, and improved metadata display
+- **🔧 Fixed Movie Database**: TMDB integration now works perfectly via Netlify functions
+- **🏷️ Better Branding**: Page title updated to "Woztorrentz" for proper bookmarking
+- **🎯 Improved UX**: List-style layout with ranking badges, color-coded seeders/leechers
+- **🚀 Full Top100 Feature**: Live Top100 torrent lists with real seed/leech data
+- **☁️ Render Deployment**: Backend deployed to Render for reliable data fetching
+- **📈 Enhanced Movie Data**: Now fetches 50 movies from TMDB with better error handling
+- **🔗 Fixed IMDB Links**: Movie Database section now properly searches IMDB instead of redirecting to TMDB
+- **⚡ Improved API Performance**: Optimized Netlify functions with proper timeout handling
+- **🛡️ Better Error Recovery**: Robust error handling and fallback mechanisms
 
 ## 🌐 API Endpoints
 
@@ -367,7 +373,16 @@ TMDB_API_KEY=your_tmdb_api_key_here
 
 ## 📝 Recent Changelog
 
-### v3.0.0 (Latest) - Full Top100 Implementation
+### v3.1.0 (Latest) - Enhanced UI/UX & Full Integration
+- 🎨 **MAJOR UI Overhaul**: Redesigned Top100 with clean list layout and prominent ranking badges
+- 🎯 **Visual Hierarchy**: Color-coded seeders/leechers (green=healthy, yellow=medium, red=low)
+- 🏷️ **Better Branding**: Page title now "Woztorrentz" for proper bookmarking and sharing
+- 🔧 **Fixed Movie Database**: TMDB integration now works perfectly via Netlify functions
+- 📱 **Improved Cards**: Streamlined torrent cards with better metadata organization
+- 💫 **Enhanced Actions**: Download, Copy Magnet, Source, Search Torrent, Search IMDB buttons
+- 📐 **Professional Layout**: List-style design inspired by popular torrent sites
+
+### v3.0.0 - Full Top100 Implementation
 - 🎉 **MAJOR**: Fully functional Top100 feature with real torrent data
 - 🚀 **Backend Deployment**: Python FastAPI backend deployed to Render
 - 🔄 **Smart Fallback**: Frontend tries backend first, falls back to Netlify functions

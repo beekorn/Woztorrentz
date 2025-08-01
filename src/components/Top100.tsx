@@ -31,13 +31,19 @@ const fetchData = async () => {
         let categoryData;
         
         try {
-          categoryResponse = await fetch(`${getApiUrl('torrent')}/api/v1/top100/categories`);
+          categoryResponse = await fetch(`${getApiUrl('torrent')}/api/v1/top100/categories`, {
+            mode: 'cors',
+            headers: {
+              'Accept': 'application/json',
+            },
+          });
           if (categoryResponse.ok) {
             categoryData = await categoryResponse.json();
           } else {
             throw new Error('Backend unavailable');
           }
-        } catch {
+        } catch (error) {
+          console.log('Backend categories failed, using fallback:', error);
           // Fallback to Netlify function
           categoryResponse = await fetch(`${getApiUrl('netlify')}/api/v1/top100/categories`);
           categoryData = await categoryResponse.json();
@@ -50,7 +56,12 @@ const fetchData = async () => {
         let torrentData;
         
         try {
-          torrentsResponse = await fetch(`${getApiUrl('torrent')}/api/v1/top100/category/${contentType}`);
+          torrentsResponse = await fetch(`${getApiUrl('torrent')}/api/v1/top100/category/${contentType}`, {
+            mode: 'cors',
+            headers: {
+              'Accept': 'application/json',
+            },
+          });
           if (torrentsResponse.ok) {
             torrentData = await torrentsResponse.json();
             if (torrentData.data && torrentData.data.length > 0) {
@@ -59,7 +70,8 @@ const fetchData = async () => {
             }
           }
           throw new Error('Backend data unavailable');
-        } catch {
+        } catch (error) {
+          console.log('Backend torrents failed, using fallback:', error);
           // Fallback to Netlify function (which will show helpful message)
           torrentsResponse = await fetch(`${getApiUrl('netlify')}/api/v1/top100/category/${contentType}`);
           torrentData = await torrentsResponse.json();
