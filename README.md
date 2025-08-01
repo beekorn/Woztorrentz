@@ -23,7 +23,8 @@ A comprehensive web-based platform for searching torrents and discovering movies
 
 ### 🏴‍☠️ Torrent Integration
 - **Multi-Source Search**: Search torrents across LimeTorrents, Pirate Bay, and KickAss
-- **Top 100 Lists**: Popular torrents by category from Pirate Bay (Movies, Music, Games, etc.)
+- **Top 100 Real-Time**: Fetches top torrents from Pirate Bay via Render backend
+- **Backup Solution**: Uses Netlify functions if backend is down
 - **Magnet Links**: Direct download and copy functionality
 - **Seeder/Leecher Info**: Real-time torrent health data
 
@@ -33,9 +34,13 @@ A comprehensive web-based platform for searching torrents and discovering movies
 - **Quick Actions**: One-click torrent search, IMDB lookup, and streaming
 - **Smart Ranking**: Properly numbered lists with ranking badges
 - **Intelligent IMDB Integration**: Automatic IMDB search when direct links aren't available
+- **Real-time Top100**: Fetches top torrents instantly from Pirate Bay via Render backend
+- **Fallback System**: Uses Netlify functions when backend is unavailable
 - **Fast Performance**: Optimized API calls with timeout handling and error recovery
 
 ### 🆕 Recent Improvements
+- **Full Top100 Feature**: Live Top100 torrent lists with real seed/leech data
+- **Render Deployment**: Backend deployed to Render for reliable data fetching
 - **Enhanced Movie Data**: Now fetches 50 movies from TMDB with better error handling
 - **Fixed IMDB Links**: Movie Database section now properly searches IMDB instead of redirecting to TMDB
 - **Improved API Performance**: Optimized Netlify functions with proper timeout handling
@@ -109,14 +114,15 @@ All movie endpoints return data in the following format:
 
 ## Configuration
 
-This project requires an API key from The Movie Database (TMDB) to function correctly. You must create a `.env` file in the root of the project directory.
+This project requires API keys from both The Movie Database (TMDB) and Render for server operation. You must create a `.env` file in the root of the project directory.
 
 ### `.env` File Setup
 
-Create a file named `.env` in the project root and add the following key:
+Create a file named `.env` in the project root and add the following keys:
 
 ```
 TMDB_API_KEY=your_tmdb_api_key_here
+PORT=8000  # Port used by backend server on Render
 TMDB_API_KEY=94786bb06526502c891f050958db76e5 # This is a demo key for anyone to try```
 
 -   **`TMDB_API_KEY`**: Used by the **backend** to get lists of popular and trending movies, as well as detailed movie information. This populates all the movie sections of the application. Get your key from [The Movie Database (TMDB) API](https://www.themoviedb.org/settings/api).
@@ -133,21 +139,33 @@ TMDB_API_KEY=94786bb06526502c891f050958db76e5 # This is a demo key for anyone to
 
 ### Components
 
-1. **React Frontend** (`/src`): Modern single-page application with:
+#### Production Architecture:
+
+1. **React Frontend** (`/src`) - **Deployed on Netlify**:
    - Live movie/TV browsing with auto-refresh
-   - Top 100 torrent lists by category
+   - Top 100 torrent lists by category with smart fallback
    - Torrent search across multiple sites
    - Responsive dark theme UI
+   - API failover logic (backend → fallback)
 
-2. **Node.js Backend** (`/server`): Express API server handling:
+2. **Netlify Functions** (`/netlify/functions`) - **Serverless Fallback**:
    - TMDB API integration and data formatting
-   - CORS configuration for frontend communication
-   - Movie/TV show data with IMDB ID resolution
+   - IMDB MovieMeter integration
+   - Top100 categories (static data)
+   - Graceful error messages when backend is down
 
-3. **Python Torrent Backend** (`/backend`): FastAPI server providing:
+3. **Python FastAPI Backend** (`/backend`) - **Deployed on Render**:
+   - **Primary Data Source** for Top100 torrents
    - Multi-site torrent scraping (LimeTorrents, Pirate Bay, KickAss)
-   - Top 100 lists from Pirate Bay
-   - Torrent health data (seeders/leechers)
+   - Real-time torrent health data (seeders/leechers)
+   - CORS configured for Netlify frontend
+
+#### Development Architecture:
+
+4. **Node.js Backend** (`/server`) - **Local Development Only**:
+   - TMDB API integration for local testing
+   - CORS configuration for local frontend
+   - Movie/TV show data with IMDB ID resolution
 
 ### Project Structure
 
@@ -198,9 +216,12 @@ This is the recommended way to run the application for development.
 
 ## 🚀 Deployment
 
-### Netlify Deployment (Recommended)
+### Production Deployment Architecture
 
-This application is optimized for Netlify deployment with serverless functions:
+The application uses a **dual-deployment** strategy for maximum reliability:
+
+#### 1. Frontend + Fallback Functions (Netlify)
+**URL**: https://woztorrentz.netlify.app
 
 1. **Connect to GitHub**: Link your Netlify account to this repository
 2. **Environment Variables**: Set the following in Netlify dashboard:
@@ -211,13 +232,33 @@ This application is optimized for Netlify deployment with serverless functions:
    - Functions directory: `netlify/functions`
 4. **Deploy**: Netlify will automatically deploy on every push to main branch
 
+#### 2. Python Backend (Render)
+**URL**: https://woztorrentz-backend.onrender.com
+
+1. **Connect to GitHub**: Link your Render account to this repository
+2. **Service Configuration**:
+   - **Name**: `woztorrentz-backend`
+   - **Root Directory**: `backend`
+   - **Runtime**: Python 3
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+   - **Environment Variables**: `PYTHON_VERSION=3.11.0`
+
+#### Smart Fallback System
+
+The frontend automatically:
+1. **First**: Tries to fetch data from Render backend (real torrent data)
+2. **Fallback**: Uses Netlify functions if backend is unavailable
+3. **User Experience**: Shows helpful messages about backend status
+
 🌟 **[Live Demo: woztorrentz.netlify.app](https://woztorrentz.netlify.app)** 🌟
 
-The production application includes Netlify Functions for:
-- Movie/TV data from TMDB (`/api/movies/*`, `/api/tv/*`)
-- IMDB MovieMeter integration (`/api/imdb/moviemeter`)
-- Real-time torrent search across multiple sources
-- Top 100 torrent lists by category
+**Current Features:**
+- ✅ **Movie/TV Data**: TMDB integration via Netlify Functions
+- ✅ **Top100 Categories**: Dynamic loading from backend/fallback
+- ✅ **Real Torrent Data**: Live scraping from Pirate Bay (when backend is available)
+- ✅ **IMDB Integration**: MovieMeter and search functionality
+- ✅ **Graceful Degradation**: Works even if backend is down
 
 ### Local Development Setup
 
@@ -326,7 +367,16 @@ TMDB_API_KEY=your_tmdb_api_key_here
 
 ## 📝 Recent Changelog
 
-### v2.1.0 (Latest)
+### v3.0.0 (Latest) - Full Top100 Implementation
+- 🎉 **MAJOR**: Fully functional Top100 feature with real torrent data
+- 🚀 **Backend Deployment**: Python FastAPI backend deployed to Render
+- 🔄 **Smart Fallback**: Frontend tries backend first, falls back to Netlify functions
+- 📊 **Real Data**: Live Top100 torrents from Pirate Bay with seed/leech counts
+- 🏗️ **Production Architecture**: Dual deployment (Netlify + Render) for reliability
+- 📱 **Better UX**: User-friendly error messages and loading states
+- 🔧 **Environment Config**: Production-ready configuration for both platforms
+
+### v2.1.0
 - ✅ Fixed IMDB links in Movie Database section
 - ✅ Enhanced Netlify Functions with proper error handling
 - ✅ Increased movie results from 20 to 50
