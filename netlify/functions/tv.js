@@ -1,14 +1,15 @@
-// Using native fetch (Node.js 18+)
+import fetch from 'node-fetch';
 
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 const TMDB_ENDPOINTS = {
-    'popular': '/tv/popular',
-    'top-rated': '/tv/top_rated',
+    'tv-popular': '/tv/popular',
+    'tv-top-rated': '/tv/top_rated',
 };
 
-const fetchTVDetails = async (tmdbId, apiKey) => {
-    const url = `${TMDB_BASE_URL}/tv/${tmdbId}?api_key=${apiKey}&append_to_response=external_ids`;
+const fetchTVDetails = async (tmdbId) => {
+    const url = `${TMDB_BASE_URL}/tv/${tmdbId}?api_key=${TMDB_API_KEY}&append_to_response=external_ids`;
     try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -23,19 +24,24 @@ const fetchTVDetails = async (tmdbId, apiKey) => {
     }
 };
 
-const fetchTMDBTVList = async (listType, apiKey) => {
-    const tvListType = `tv-${listType}`;
-    const endpoint = TMDB_ENDPOINTS[listType];
+const fetchTMDBTVList = async (listType) => {
+    console.log(`Fetching TMDB TV list for type: ${listType}`);
+    const tvListType = `tv-${listType}`; // Prefix with 'tv-' to match TMDB_ENDPOINTS keys
+    const endpoint = TMDB_ENDPOINTS[tvListType];
     if (!endpoint) {
+        console.error(`Invalid TV list type received: ${listType}`);
         throw new Error(`Invalid TV list type: ${listType}`);
     }
 
     let allShows = [];
     for (let page = 1; page <= 3; page++) {
-        const url = `${TMDB_BASE_URL}${endpoint}?api_key=${apiKey}&language=en-US&page=${page}`;
+        const url = `${TMDB_BASE_URL}${endpoint}?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`;
+        console.log(`Fetching URL: ${url}`);
         try {
             const response = await fetch(url);
             if (!response.ok) {
+                const errorBody = await response.text();
+                console.error(`TMDB API Error for ${listType} on page ${page}. Status: ${response.status}. Body: ${errorBody}`);
                 throw new Error(`Failed to fetch from TMDB: ${response.statusText}`);
             }
             const data = await response.json();
@@ -46,7 +52,7 @@ const fetchTMDBTVList = async (listType, apiKey) => {
         }
     }
 
-    // Sort shows if the list type is 'top-rated'
+    // Sort shows if the list type is 'tv-top-rated'
     if (listType === 'top-rated') {
         allShows.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
     }
@@ -56,7 +62,7 @@ const fetchTMDBTVList = async (listType, apiKey) => {
     // Process TV shows in parallel to get IMDB IDs
     const showsWithDetails = await Promise.all(
         uniqueShows.slice(0, 50).map(async (show) => {
-            const details = await fetchTVDetails(show.id, apiKey);
+            const details = await fetchTVDetails(show.id);
             return {
                 ...show,
                 imdb_id: details.external_ids ? details.external_ids.imdb_id : null
@@ -64,7 +70,7 @@ const fetchTMDBTVList = async (listType, apiKey) => {
         })
     );
     
-    return showsWithDetails.map((show, index) => ({
+    const results = showsWithDetails.map((show, index) => ({
         imdbId: show.imdb_id || `tmdb-${show.id}`,
         title: show.name,
         year: show.first_air_date ? show.first_air_date.substring(0, 4) : 'N/A',
@@ -75,21 +81,25 @@ const fetchTMDBTVList = async (listType, apiKey) => {
         rank: index + 1,
         popularity: show.popularity || 0
     }));
+    
+    console.log(`TV ${listType} - First 3 shows:`, results.slice(0, 3).map(s => ({ title: s.title, year: s.year, rank: s.rank })));
+    return results;
 };
 
-export const handler = async (event, context) => {
-    // Enable CORS
+exports.handler = async (event, context) => {
+    // Set CORS headers
     const headers = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Content-Type': 'application/json'
     };
 
     if (event.httpMethod === 'OPTIONS') {
         return {
             statusCode: 200,
             headers,
-            body: '',
+            body: ''
         };
     }
 
@@ -97,25 +107,25 @@ export const handler = async (event, context) => {
         return {
             statusCode: 405,
             headers,
-            body: JSON.stringify({ error: 'Method not allowed' }),
+            body: JSON.stringify({ error: 'Method not allowed' })
         };
     }
 
+    const { listType } = event.queryStringParameters || {};
+    
+    console.log(`Received request for /api/tv with listType: ${listType}`);
+    
+    if (!TMDB_API_KEY) {
+        console.error('CRITICAL: TMDB API key is not configured on the server for /api/tv. Check environment variables.');
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: 'TMDB API key is not configured on the server.' })
+        };
+    }
+    
     try {
-        const pathParts = event.path.split('/');
-        const listType = pathParts[pathParts.length - 1];
-        
-        const TMDB_API_KEY = process.env.TMDB_API_KEY;
-        if (!TMDB_API_KEY) {
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ error: 'TMDB API key not configured' }),
-            };
-        }
-
-        const shows = await fetchTMDBTVList(listType, TMDB_API_KEY);
-        
+        const shows = await fetchTMDBTVList(listType);
         return {
             statusCode: 200,
             headers,
@@ -125,10 +135,10 @@ export const handler = async (event, context) => {
                 lastUpdated: new Date().toISOString(),
                 source: 'TMDB',
                 error: null
-            }),
+            })
         };
     } catch (error) {
-        console.error('Error in TV function:', error);
+        console.error(`Error fetching TV list ${listType}:`, error);
         return {
             statusCode: 500,
             headers,
@@ -138,7 +148,7 @@ export const handler = async (event, context) => {
                 lastUpdated: null,
                 source: 'TMDB',
                 error: error.message
-            }),
+            })
         };
     }
-};
+}

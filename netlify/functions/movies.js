@@ -1,5 +1,6 @@
-// Using native fetch (Node.js 18+)
+import fetch from 'node-fetch';
 
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 const TMDB_ENDPOINTS = {
@@ -13,8 +14,8 @@ const TMDB_ENDPOINTS = {
     'tv-top-rated': '/tv/top_rated',
 };
 
-const fetchMovieDetails = async (tmdbId, apiKey) => {
-    const url = `${TMDB_BASE_URL}/movie/${tmdbId}?api_key=${apiKey}&append_to_response=external_ids`;
+const fetchMovieDetails = async (tmdbId) => {
+    const url = `${TMDB_BASE_URL}/movie/${tmdbId}?api_key=${TMDB_API_KEY}&append_to_response=external_ids`;
     try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -28,70 +29,73 @@ const fetchMovieDetails = async (tmdbId, apiKey) => {
     }
 };
 
-const fetchTMDBList = async (listType, apiKey) => {
+const fetchTMDBList = async (listType) => {
+    console.log(`Fetching TMDB list for type: ${listType}`);
     const endpoint = TMDB_ENDPOINTS[listType];
     if (!endpoint) {
+        console.error(`Invalid list type received: ${listType}`);
         throw new Error(`Invalid list type: ${listType}`);
     }
 
-// Fetch first 3 pages
     let allMovies = [];
     for (let page = 1; page <= 3; page++) {
-        const url = `${TMDB_BASE_URL}${endpoint}?api_key=${apiKey}&language=en-US&page=${page}`;
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-        
+        const url = `${TMDB_BASE_URL}${endpoint}?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`;
+        console.log(`Fetching URL: ${url}`);
         try {
-            const response = await fetch(url, { 
-                signal: controller.signal,
-                headers: {
-                    'User-Agent': 'Woztorrentz/1.0'
-                }
-            });
-            clearTimeout(timeoutId);
-            
+            const response = await fetch(url);
             if (!response.ok) {
-                throw new Error(`Failed to fetch from TMDB: ${response.status} ${response.statusText}`);
+                const errorBody = await response.text();
+                console.error(`TMDB API Error for ${listType} on page ${page}. Status: ${response.status}. Body: ${errorBody}`);
+                throw new Error(`Failed to fetch from TMDB: ${response.statusText}`);
             }
-            
             const data = await response.json();
             allMovies = allMovies.concat(data.results);
         } catch (error) {
-            clearTimeout(timeoutId);
             console.error(`Network or fetch error for URL: ${url}`, error);
             throw error;
         }
     }
-    
-    // Return 50 movies
+
     const uniqueMovies = Array.from(new Map(allMovies.map(movie => [movie.id, movie])).values());
-    return uniqueMovies.slice(0, 50).map((movie, index) => ({
-        imdbId: `tmdb-${movie.id}`,
+
+    // Process movies in parallel to get IMDB IDs
+    const moviesWithDetails = await Promise.all(
+        uniqueMovies.slice(0, 50).map(async (movie) => {
+            const details = await fetchMovieDetails(movie.id);
+            return {
+                ...movie,
+                imdb_id: details.imdb_id
+            };
+        })
+    );
+
+    return moviesWithDetails.map((movie, index) => ({
+        imdbId: movie.imdb_id || `tmdb-${movie.id}`, // Use actual IMDB ID or fallback to TMDB ID
         title: movie.title,
         year: movie.release_date ? movie.release_date.substring(0, 4) : 'N/A',
         posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
         backdropUrl: movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : null,
         voteAverage: movie.vote_average || 0,
         overview: movie.overview,
-        rank: index + 1,
-        popularity: movie.popularity || 0
+        rank: index + 1, // Add proper ranking based on TMDB order
+        popularity: movie.popularity || 0 // Include popularity for potential sorting
     }));
 };
 
-export const handler = async (event, context) => {
-    // Enable CORS
+exports.handler = async (event, context) => {
+    // Set CORS headers
     const headers = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Content-Type': 'application/json'
     };
 
     if (event.httpMethod === 'OPTIONS') {
         return {
             statusCode: 200,
             headers,
-            body: '',
+            body: ''
         };
     }
 
@@ -99,36 +103,26 @@ export const handler = async (event, context) => {
         return {
             statusCode: 405,
             headers,
-            body: JSON.stringify({ error: 'Method not allowed' }),
+            body: JSON.stringify({ error: 'Method not allowed' })
         };
     }
 
+    const { listType } = event.queryStringParameters || {};
+    
+    console.log(`Received request for /api/movies with listType: ${listType}`);
+    
+    console.log('TMDB API Key:', TMDB_API_KEY ? 'Exists' : 'Not Defined');
+    if (!TMDB_API_KEY) {
+        console.error('CRITICAL: TMDB API key is not configured on the server for /api/movies. Check environment variables.');
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: 'TMDB API key is not configured on the server.' })
+        };
+    }
+    
     try {
-        console.log('Movies function called with path:', event.path);
-        const pathParts = event.path.split('/');
-        const listType = pathParts[pathParts.length - 1];
-        console.log('List type:', listType);
-        
-        const TMDB_API_KEY = process.env.TMDB_API_KEY;
-        console.log('TMDB_API_KEY present:', !!TMDB_API_KEY);
-        
-        if (!TMDB_API_KEY) {
-            console.error('TMDB API key not configured');
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ 
-                    success: false,
-                    error: 'TMDB API key not configured',
-                    data: [],
-                    lastUpdated: null,
-                    source: 'TMDB'
-                }),
-            };
-        }
-
-        const movies = await fetchTMDBList(listType, TMDB_API_KEY);
-        
+        const movies = await fetchTMDBList(listType);
         return {
             statusCode: 200,
             headers,
@@ -138,10 +132,10 @@ export const handler = async (event, context) => {
                 lastUpdated: new Date().toISOString(),
                 source: 'TMDB',
                 error: null
-            }),
+            })
         };
     } catch (error) {
-        console.error('Error in movies function:', error);
+        console.error(`Error fetching list ${listType}:`, error);
         return {
             statusCode: 500,
             headers,
@@ -149,9 +143,9 @@ export const handler = async (event, context) => {
                 success: false,
                 data: [],
                 lastUpdated: null,
-                source: 'Error',
-                error: error.message || 'Unknown error'
-            }),
+                source: 'TMDB',
+                error: error.message
+            })
         };
     }
-};
+}

@@ -101,6 +101,7 @@ export default async function handler(req, res) {
     
     console.log(`Received request for /api/movies with listType: ${listType}`);
     
+    console.log('TMDB API Key:', TMDB_API_KEY ? 'Exists' : 'Not Defined');
     if (!TMDB_API_KEY) {
         console.error('CRITICAL: TMDB API key is not configured on the server for /api/movies. Check environment variables.');
         return res.status(500).json({ error: 'TMDB API key is not configured on the server.' });
