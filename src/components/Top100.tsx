@@ -20,6 +20,59 @@ export const Top100 = ({ onImdbSearch, onTorrentSearch }: Top100Props) => {
   const [categories, setCategories] = useState<{ value: string; label: string; }[]>([]);
   const [torrents, setTorrents] = useState<TorrentResult[]>([]);
 
+  // Intelligent search function to extract clean movie/show title
+  const extractCleanTitle = (torrentName: string): string => {
+    let cleanTitle = torrentName;
+    
+    // Remove common patterns and metadata
+    const patterns = [
+      // Remove year patterns like (2023), [2023], 2023
+      /[\(\[]\d{4}[\)\]]/g,
+      /\b\d{4}\b/g,
+      
+      // Remove quality indicators
+      /\b(720p|1080p|2160p|4K|UHD|HDR|HEVC|x264|x265|H\.264|H\.265)\b/gi,
+      
+      // Remove audio info
+      /\b(DTS|AC3|AAC|MP3|FLAC|Atmos|TrueHD|DDP|5\.1|2\.0)\b/gi,
+      
+      // Remove release info
+      /\b(BluRay|BDRip|DVDRip|WEBRip|WEB-DL|HDTV|PDTV|CAM|TS|TC)\b/gi,
+      /\b(REMUX|REPACK|PROPER|EXTENDED|UNCUT|DIRECTORS?|CUT)\b/gi,
+      
+      // Remove release groups (usually at the end in brackets or after dash)
+      /-[A-Z0-9]+$/gi,
+      /\[[A-Za-z0-9\.-]+\]$/gi,
+      
+      // Remove file extensions
+      /\.(mkv|mp4|avi|mov|wmv)$/gi,
+      
+      // Remove extra spaces and dots
+      /\.+/g,
+      /\s{2,}/g
+    ];
+    
+    // Apply all patterns
+    patterns.forEach(pattern => {
+      cleanTitle = cleanTitle.replace(pattern, ' ');
+    });
+    
+    // Clean up the result
+    cleanTitle = cleanTitle
+      .trim()
+      .replace(/^[\.-]+|[\.-]+$/g, '') // Remove leading/trailing dots and dashes
+      .replace(/\s+/g, ' ') // Normalize spaces
+      .trim();
+    
+    // If the result is too short or empty, return the first few words of original
+    if (cleanTitle.length < 3) {
+      const words = torrentName.split(/\s+/);
+      cleanTitle = words.slice(0, Math.min(3, words.length)).join(' ');
+    }
+    
+    return cleanTitle;
+  };
+
   useEffect(() => {
 const fetchData = async () => {
       setLoading(true);
@@ -234,7 +287,7 @@ const fetchData = async () => {
                           variant="outline" 
                           size="sm" 
                           className="flex items-center gap-2 text-blue-600" 
-                          onClick={() => onImdbSearch(torrent.name)}
+                          onClick={() => onTorrentSearch(extractCleanTitle(torrent.name))}
                         >
                           Search Torrent
                         </Button>
