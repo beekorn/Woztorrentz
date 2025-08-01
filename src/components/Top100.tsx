@@ -23,20 +23,55 @@ export const Top100 = ({ onImdbSearch, onTorrentSearch }: Top100Props) => {
   useEffect(() => {
 const fetchData = async () => {
       setLoading(true);
+      setError(null);
+      
       try {
-        const categoryResponse = await fetch(`${getApiUrl('netlify')}/api/v1/top100/categories`);
-        const categoryData = await categoryResponse.json();
+        // Try to fetch categories from backend first
+        let categoryResponse;
+        let categoryData;
+        
+        try {
+          categoryResponse = await fetch(`${getApiUrl('torrent')}/api/v1/top100/categories`);
+          if (categoryResponse.ok) {
+            categoryData = await categoryResponse.json();
+          } else {
+            throw new Error('Backend unavailable');
+          }
+        } catch {
+          // Fallback to Netlify function
+          categoryResponse = await fetch(`${getApiUrl('netlify')}/api/v1/top100/categories`);
+          categoryData = await categoryResponse.json();
+        }
+        
         setCategories(categoryData.categories || []);
 
-        const torrentsResponse = await fetch(`${getApiUrl('netlify')}/api/v1/top100/category/${contentType}`);
-        const torrentData = await torrentsResponse.json();
-
-        if (torrentData.error) {
-          throw new Error(torrentData.message);
+        // Try to fetch torrents from backend first
+        let torrentsResponse;
+        let torrentData;
+        
+        try {
+          torrentsResponse = await fetch(`${getApiUrl('torrent')}/api/v1/top100/category/${contentType}`);
+          if (torrentsResponse.ok) {
+            torrentData = await torrentsResponse.json();
+            if (torrentData.data && torrentData.data.length > 0) {
+              setTorrents(torrentData.data);
+              return; // Success - exit early
+            }
+          }
+          throw new Error('Backend data unavailable');
+        } catch {
+          // Fallback to Netlify function (which will show helpful message)
+          torrentsResponse = await fetch(`${getApiUrl('netlify')}/api/v1/top100/category/${contentType}`);
+          torrentData = await torrentsResponse.json();
+          
+          if (torrentData.error) {
+            throw new Error(torrentData.message || 'Backend service temporarily unavailable');
+          }
+          setTorrents(torrentData.data || []);
         }
-        setTorrents(torrentData.data || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
+        setTorrents([]);
       } finally {
         setLoading(false);
       }

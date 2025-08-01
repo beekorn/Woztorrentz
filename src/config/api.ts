@@ -1,6 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
   // Backend API URL (deployed on Render)
+  // Update this URL once your Render deployment is live
   BACKEND_URL: 'https://woztorrentz-backend.onrender.com',
   
   // Torrent API URL (if different)
