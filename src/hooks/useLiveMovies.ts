@@ -36,9 +36,9 @@ export const useLiveMovies = (listType: string = 'popular'): UseLiveMoviesReturn
     
     try {
       const isTv = listType.startsWith('tv-');
-      const apiPath = isTv ? `/api/tv/${listType.replace('tv-', '')}` : `/api/movies/${listType}`;
-      // Use Netlify functions for movie/TV data instead of backend
-      const fullUrl = `${getApiUrl('netlify')}${apiPath}`;
+      const apiPath = isTv ? `/api/tv?listType=${listType.replace('tv-', '')}` : `/api/movies?listType=${listType}`;
+      // Use fast Vercel backend for movie/TV data (much faster than Netlify functions!)
+      const fullUrl = `${getApiUrl('backend')}${apiPath}`;
       
       const response = await fetch(fullUrl);
       if (!response.ok) {
